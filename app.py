@@ -1,11 +1,10 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
+from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
 import re
-import string
 
 # Page config
 st.set_page_config(
@@ -18,123 +17,115 @@ st.set_page_config(
 st.title("📧 Spam Mail Prediction")
 st.markdown("### Detect spam emails using Machine Learning")
 
-# Load and train model (in production, you'd load a pre-trained model)
+# Load data, train model, and return the fitted model, vectorizer, and accuracy
 @st.cache_resource
-def load_model():
-    # Sample training data (replace with your actual dataset)
-    sample_data = {
-        'text': [
-            'Free money now! Click here to claim your prize!',
-            'Meeting scheduled for tomorrow at 3 PM',
-            'URGENT: Your account will be suspended! Act now!',
-            'Thanks for the presentation today',
-            'Win a free iPhone! Limited time offer!',
-            'Please review the attached document',
-            'Congratulations! You have won $1000000!',
-            'Can we reschedule our call?',
-            'CLICK HERE FOR AMAZING DEALS!!!',
-            'The project deadline is next week'
-        ],
-        'label': [1, 0, 1, 0, 1, 0, 1, 0, 1, 0]  # 1 = spam, 0 = ham
-    }
-    
-    df = pd.DataFrame(sample_data)
-    
-    # Text preprocessing function
-    def preprocess_text(text):
-        text = text.lower()
-        text = re.sub(r'[^a-zA-Z\s]', '', text)
-        text = re.sub(r'\s+', ' ', text).strip()
-        return text
-    
-    # Create pipeline
-    pipeline = Pipeline([
-        ('tfidf', TfidfVectorizer(max_features=5000, stop_words='english')),
-        ('classifier', MultinomialNB())
-    ])
-    
-    # Preprocess and train
-    df['processed_text'] = df['text'].apply(preprocess_text)
-    pipeline.fit(df['processed_text'], df['label'])
-    
-    return pipeline
+def load_model_and_vectorizer():
+    # Load the dataset from the CSV file
+    try:
+        raw_mail_data = pd.read_csv('mail_data.csv')
+    except FileNotFoundError:
+        st.error("Error: 'mail_data.csv' not found. Please make sure the CSV file is in the same directory as the script.")
+        return None, None, None
 
-# Load model
-model = load_model()
+    # Replace null values with an empty string
+    mail_data = raw_mail_data.where((pd.notnull(raw_mail_data)), '')
+
+    # Label spam as 0 and ham as 1
+    mail_data.loc[mail_data['Category'] == 'spam', 'Category'] = 0
+    mail_data.loc[mail_data['Category'] == 'ham', 'Category'] = 1
+
+    # Separating the data as texts and label
+    X = mail_data['Message']
+    Y = mail_data['Category'].astype('int')
+
+    # Split data into training and testing sets
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=3)
+
+    # Transform the text data to feature vectors
+    feature_extraction = TfidfVectorizer(min_df=1, stop_words='english', lowercase=True)
+    X_train_features = feature_extraction.fit_transform(X_train)
+    X_test_features = feature_extraction.transform(X_test)
+
+    # Train the Logistic Regression model
+    model = LogisticRegression()
+    model.fit(X_train_features, Y_train)
+
+    # Calculate accuracy on test data
+    prediction_on_test_data = model.predict(X_test_features)
+    accuracy_on_test_data = accuracy_score(Y_test, prediction_on_test_data)
+
+    return model, feature_extraction, accuracy_on_test_data
+
+# Load the model, vectorizer, and accuracy
+model, vectorizer, accuracy = load_model_and_vectorizer()
 
 # Main interface
-col1, col2 = st.columns([2, 1])
+if model and vectorizer:  # Only run the interface if the model loaded successfully
+    col1, col2 = st.columns([2, 1])
 
-with col1:
-    st.subheader("Enter Email Text")
-    email_text = st.text_area(
-        "Paste your email content here:",
-        height=200,
-        placeholder="Enter the email text you want to analyze..."
-    )
-    
-    if st.button("🔍 Analyze Email", type="primary"):
-        if email_text.strip():
-            # Preprocess text
-            def preprocess_text(text):
-                text = text.lower()
-                text = re.sub(r'[^a-zA-Z\s]', '', text)
-                text = re.sub(r'\s+', ' ', text).strip()
-                return text
-            
-            processed_text = preprocess_text(email_text)
-            
-            # Make prediction
-            prediction = model.predict([processed_text])[0]
-            probability = model.predict_proba([processed_text])[0]
-            
-            # Display results
-            st.subheader("📊 Analysis Results")
-            
-            if prediction == 1:
-                st.error("🚨 **SPAM DETECTED**")
-                confidence = probability[1] * 100
+    with col1:
+        st.subheader("Enter Email Text")
+        email_text = st.text_area(
+            "Paste your email content here:",
+            height=250,
+            placeholder="Enter the email text you want to analyze..."
+        )
+        
+        if st.button("🔍 Analyze Email", type="primary"):
+            if email_text.strip():
+                # Convert text to feature vectors
+                input_data_features = vectorizer.transform([email_text])
+                
+                # Make prediction
+                prediction = model.predict(input_data_features)[0]
+                probability = model.predict_proba(input_data_features)[0]
+                
+                # Display results
+                st.subheader("📊 Analysis Results")
+                
+                # 0 is Spam, 1 is Ham (as per your script)
+                if prediction == 0:
+                    st.error("🚨 **SPAM DETECTED**")
+                    confidence = probability[0] * 100
+                else:
+                    st.success("✅ **LEGITIMATE EMAIL (HAM)**")
+                    confidence = probability[1] * 100
+                
+                st.metric("Confidence", f"{confidence:.1f}%")
+                
+                # Probability breakdown
+                st.subheader("📈 Probability Breakdown")
+                prob_df = pd.DataFrame({
+                    'Category': ['Spam', 'Legitimate (Ham)'],
+                    'Probability': [probability[0], probability[1]]
+                })
+                st.bar_chart(prob_df.set_index('Category'))
+                
             else:
-                st.success("✅ **LEGITIMATE EMAIL**")
-                confidence = probability[0] * 100
-            
-            st.metric("Confidence", f"{confidence:.1f}%")
-            
-            # Probability breakdown
-            st.subheader("📈 Probability Breakdown")
-            prob_df = pd.DataFrame({
-                'Category': ['Legitimate', 'Spam'],
-                'Probability': [probability[0], probability[1]]
-            })
-            st.bar_chart(prob_df.set_index('Category'))
-            
-        else:
-            st.warning("Please enter some email text to analyze.")
+                st.warning("Please enter some email text to analyze.")
 
-with col2:
-    st.subheader("ℹ️ About")
-    st.info("""
-    This spam detector uses:
-    - **TF-IDF Vectorization** for text processing
-    - **Naive Bayes Classifier** for prediction
-    - **Natural Language Processing** techniques
-    
-    **How it works:**
-    1. Text preprocessing (lowercase, remove special chars)
-    2. Feature extraction using TF-IDF
-    3. Classification using trained ML model
-    """)
-    
-    st.subheader("🎯 Tips")
-    st.markdown("""
-    **Common spam indicators:**
-    - Excessive use of CAPS
-    - Multiple exclamation marks
-    - Urgent language
-    - Prize/money offers
-    - Suspicious links
-    """)
+    with col2:
+        st.subheader("ℹ️ About")
+        st.info("""
+        This spam detector uses the logic from your script:
+        - **TF-IDF Vectorization** for text processing.
+        - **Logistic Regression Classifier** for prediction.
+        - **Train-Test Split** for model evaluation.
+        """)
+        
+        # Display model accuracy
+        st.subheader("🎯 Model Performance")
+        st.write(f"The model was trained on the `mail_data.csv` dataset and achieved an accuracy of **{accuracy:.2%}** on the test set.")
+        
+        st.subheader("💡 Common Spam Indicators")
+        st.markdown("""
+        - Excessive use of **CAPS**.
+        - Multiple **exclamation marks!!!**
+        - **Urgent** or demanding language ("Act now!").
+        - Unbelievable **prize/money offers**.
+        - Suspicious **links** or requests for personal info.
+        """)
 
-# Footer
-st.markdown("---")
-st.markdown("Built with ❤️ using Streamlit and Scikit-learn")
+    # Footer
+    st.markdown("---")
+    st.markdown("Built with ❤️by Abhishek Kumar")
