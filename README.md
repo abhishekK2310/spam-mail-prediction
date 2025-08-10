@@ -4,7 +4,7 @@ A machine learning-powered web application to detect spam emails using Streamlit
 
 ## Features
 
-- **Real-time spam detection** using Naive Bayes classifier
+- **Real-time spam detection** using Logistic Regression
 - **Interactive web interface** built with Streamlit
 - **Text preprocessing** with NLP techniques
 - **Confidence scoring** for predictions
