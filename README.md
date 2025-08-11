@@ -1,69 +1,54 @@
-# 📧 Spam Mail Prediction
+# Spam Mail Prediction
 
-A machine learning-powered web application to detect spam emails using Streamlit, Scikit-learn, and NLP techniques.
+This project is a web application that predicts whether an email is spam or not. It uses a **Multinomial Naive Bayes** model to classify emails.
 
-## Features
+## Live Demo
 
-- **Real-time spam detection** using Logistic Regression
-- **Interactive web interface** built with Streamlit
-- **Text preprocessing** with NLP techniques
-- **Confidence scoring** for predictions
-- **Visual probability breakdown**
+You can try the live demo here: [Spam Mail Prediction App](https://spam-mail-abhishek.streamlit.app/)
 
-## Tech Stack
 
-- **Frontend**: Streamlit
-- **ML Framework**: Scikit-learn
-- **Data Processing**: Pandas, NumPy
-- **NLP**: TF-IDF Vectorization
-- **Deployment**: Render
 
-## Local Setup
+---
 
-1. Clone the repository:
-```bash
-git clone https://github.com/abhishekK2310/spam-mail-prediction.git
-cd spam-mail-prediction
-```
+## Technologies Used 💻
 
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+* **Python:** The core programming language used.
+* **Pandas & NumPy:** For data manipulation and numerical operations.
+* **Scikit-learn:** For building the machine learning model.
+* **Streamlit:** For creating the web application.
+* **Matplotlib & Seaborn:** For data visualization.
 
-3. Run the application:
-```bash
-streamlit run app.py
-```
+---
 
-4. Open your browser and go to `http://localhost:8501`
+## How To Use 🚀
 
-## How It Works
+1.  **Clone the repository:**
+    ```bash
+    git clone [https://github.com/abhishekK2310/spam-mail-prediction.git](https://github.com/abhishekK2310/spam-mail-prediction.git)
+    ```
+2.  **Install the dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+3.  **Run the Streamlit app:**
+    ```bash
+    streamlit run app.py
+    ```
 
-1. **Text Preprocessing**: Converts text to lowercase, removes special characters
-2. **Feature Extraction**: Uses TF-IDF vectorization to convert text to numerical features
-3. **Classification**: Employs Naive Bayes classifier for spam detection
-4. **Results**: Displays prediction with confidence score and probability breakdown
+---
 
-## Usage
+## Model 🤖
 
-1. Enter email text in the text area
-2. Click "Analyze Email" button
-3. View the prediction results and confidence score
-4. Check the probability breakdown chart
+The project uses a **Multinomial Naive Bayes** model, which is a probabilistic classifier that is well-suited for text classification tasks. The model is trained on a dataset of labeled emails to learn the patterns that distinguish spam from non-spam emails.
 
-## Model Performance
+---
 
-The model uses a Multinomial Naive Bayes classifier with TF-IDF features, which is effective for text classification tasks like spam detection.
+## Dataset 📊
 
-## Deployment
+The dataset used for training the model is included in the repository (`mail_data.csv`). It contains a collection of emails that have been labeled as either "spam" or "ham" (not spam).
 
-This app is deployed on Render for easy access and scalability.
+---
 
-## Contributing
+## Contributing 🤝
 
-Feel free to fork this repository and submit pull requests for improvements.
-
-## License
-
-MIT License
+Contributions are welcome! If you have any suggestions or improvements, please create a pull request or open an issue.
