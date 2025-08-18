@@ -1,6 +1,6 @@
 # Spam Mail Prediction
 
-This project is a web application that predicts whether an email is spam or not. It uses a **Multinomial Naive Bayes** model to classify emails.
+This project is a web application that predicts whether an email is spam or not. It uses a **Logistic Regression** model to classify emails.
 
 ## Live Demo
 
@@ -16,7 +16,7 @@ You can try the live demo here: [Spam Mail Prediction App](https://spam-mail-abh
 * **Pandas & NumPy:** For data manipulation and numerical operations.
 * **Scikit-learn:** For building the machine learning model.
 * **Streamlit:** For creating the web application.
-* **Matplotlib & Seaborn:** For data visualization.
+
 
 ---
 
@@ -39,7 +39,7 @@ You can try the live demo here: [Spam Mail Prediction App](https://spam-mail-abh
 
 ## Model 🤖
 
-The project uses a **Multinomial Naive Bayes** model, which is a probabilistic classifier that is well-suited for text classification tasks. The model is trained on a dataset of labeled emails to learn the patterns that distinguish spam from non-spam emails.
+The project uses a **Logistic Regression** model, which is a binary classifier that is well-suited for text classification tasks. The model is trained on a dataset of labeled emails to learn the patterns that distinguish spam from non-spam emails.
 
 ---
 
